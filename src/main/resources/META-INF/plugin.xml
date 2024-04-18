@@ -1,0 +1,15 @@
+<idea-plugin>
+    <id>com.tcpip147.flowml</id>
+    <name>Flowml</name>
+    <vendor email="tcpip147@github.com" url="https://github.com/tcpip147">tcpip147</vendor>
+    <description>This is Spring boot flow chart Files Management Plugin.</description>
+    <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="FlowML File"
+                  implementationClass="com.tcpip147.flowml.plugin.FmlFileType"
+                  fieldName="INSTANCE"
+                  language="XML"
+                  extensions="flowml"/>
+        <fileEditorProvider implementation="com.tcpip147.flowml.plugin.FmlFileEditorProvider"/>
+    </extensions>
+</idea-plugin>
