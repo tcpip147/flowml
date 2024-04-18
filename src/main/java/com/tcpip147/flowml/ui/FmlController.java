@@ -129,23 +129,6 @@ public class FmlController {
         model.setGhostShapeList(null);
     }
 
-    public boolean isInResizableArea(MouseEvent e) {
-        for (Shape shape : model.getShapeList()) {
-            if (shape.selected) {
-                if (shape instanceof Activity) {
-                    Activity activity = (Activity) shape;
-                    if ((activity.x - 10 < e.getX() && activity.x + 10 > e.getX() &&
-                            activity.y < e.getY() && activity.y + activity.height > e.getY()) ||
-                            (activity.x + activity.width - 10 < e.getX() && activity.x + activity.width + 10 > e.getX() &&
-                                    activity.y < e.getY() && activity.y + activity.height > e.getY())) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
     public void resizeGhostShape(MouseContext c, MouseEvent e) {
         if (model.getGhostShapeList() == null) {
             model.setGhostShapeList(new ArrayList<>());
@@ -162,7 +145,13 @@ public class FmlController {
             if (shape instanceof GhostActivity) {
                 GhostActivity ghostActivity = (GhostActivity) shape;
                 Activity activity = ghostActivity.activity;
-                ghostActivity.setWidth((int) Math.round((activity.width - c.originX + e.getX()) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE);
+                if (c.resizePosition == 0) {
+                    int x = (int) (e.getX() / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
+                    ghostActivity.setX(x);
+                    ghostActivity.setWidth(activity.width + c.originX - x);
+                } else {
+                    ghostActivity.setWidth((int) Math.round((activity.width - c.originX + e.getX()) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE);
+                }
                 ghostActivity.setFrontLayerLevel(1);
             }
         }

@@ -14,7 +14,7 @@ public class FmlModel {
     private RangeSelection rangeSelection = new RangeSelection();
     private List<Shape> shapeList = new ArrayList<>();
     private List<Shape> ghostShapeList;
-    
+
 
     public FmlModel() {
         add(rangeSelection);
@@ -44,10 +44,6 @@ public class FmlModel {
         return rangeSelection;
     }
 
-    public void setRangeSelection(RangeSelection rangeSelection) {
-        this.rangeSelection = rangeSelection;
-    }
-
     public Shape getShapeInBound(MouseEvent e) {
         List<Shape> list = shapeList.stream().filter(shape -> shape.inBound(e.getPoint())).toList();
         if (list.size() > 0) {
@@ -68,6 +64,24 @@ public class FmlModel {
             }
         }
         return list;
+    }
+
+    public int isInResizableArea(MouseEvent e) {
+        for (Shape shape : shapeList) {
+            if (shape.selected) {
+                if (shape instanceof Activity) {
+                    Activity activity = (Activity) shape;
+                    if (activity.x - 10 < e.getX() && activity.x + 10 > e.getX() &&
+                            activity.y < e.getY() && activity.y + activity.height > e.getY()) {
+                        return 0;
+                    } else if (activity.x + activity.width - 10 < e.getX() && activity.x + activity.width + 10 > e.getX() &&
+                            activity.y < e.getY() && activity.y + activity.height > e.getY()) {
+                        return 1;
+                    }
+                }
+            }
+        }
+        return -1;
     }
 
     public List<Shape> getDrawingShapeList() {

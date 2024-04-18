@@ -9,6 +9,7 @@ public class MouseContext implements Context {
     public int prevX;
     public int prevY;
     public boolean isControlDown;
+    public int resizePosition;
 
     @Override
     public void reset() {
@@ -17,6 +18,7 @@ public class MouseContext implements Context {
         prevX = 0;
         prevY = 0;
         isControlDown = false;
+        resizePosition = 0;
     }
 
     public void setUp(MouseEvent e) {

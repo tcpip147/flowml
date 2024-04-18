@@ -33,8 +33,9 @@ public class FmlCanvas extends JPanel {
             public void mousePressed(MouseEvent e) {
                 if (state == SelectionState.SELECT_READY) {
                     mouseContext.setUp(e);
-                    if (controller.isInResizableArea(e)) {
+                    if (model.isInResizableArea(e) > -1) {
                         state = SelectionState.RESIZE_READY;
+                        mouseContext.resizePosition = model.isInResizableArea(e);
                     } else {
                         Shape shape = model.getShapeInBound(e);
                         if (shape == null) {
@@ -111,7 +112,7 @@ public class FmlCanvas extends JPanel {
             @Override
             public void mouseMoved(MouseEvent e) {
                 if (state == SelectionState.SELECT_READY) {
-                    if (controller.isInResizableArea(e)) {
+                    if (model.isInResizableArea(e) > -1) {
                         setCursor(FmlCursor.RESIZE_HORIZONTAL);
                     } else {
                         setCursor(FmlCursor.DEFAULT);
