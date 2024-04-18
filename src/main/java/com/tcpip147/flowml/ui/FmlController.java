@@ -163,6 +163,7 @@ public class FmlController {
                 GhostActivity ghostActivity = (GhostActivity) shape;
                 Activity activity = ghostActivity.activity;
                 ghostActivity.setWidth((int) Math.round((activity.width - c.originX + e.getX()) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE);
+                ghostActivity.setFrontLayerLevel(1);
             }
         }
         c.prevX = e.getX();

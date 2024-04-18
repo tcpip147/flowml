@@ -6,6 +6,7 @@ import com.tcpip147.flowml.ui.component.Shape;
 
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class FmlModel {
@@ -13,6 +14,7 @@ public class FmlModel {
     private RangeSelection rangeSelection = new RangeSelection();
     private List<Shape> shapeList = new ArrayList<>();
     private List<Shape> ghostShapeList;
+    
 
     public FmlModel() {
         add(rangeSelection);
@@ -66,5 +68,20 @@ public class FmlModel {
             }
         }
         return list;
+    }
+
+    public List<Shape> getDrawingShapeList() {
+        List<Shape> drawingShapeList = new ArrayList<>();
+        if (ghostShapeList != null) {
+            drawingShapeList.addAll(ghostShapeList);
+        }
+        drawingShapeList.addAll(shapeList);
+        drawingShapeList.sort(new Comparator<Shape>() {
+            @Override
+            public int compare(Shape o1, Shape o2) {
+                return o1.frontLayerLevel - o2.frontLayerLevel;
+            }
+        });
+        return drawingShapeList;
     }
 }

@@ -141,14 +141,7 @@ public class FmlCanvas extends JPanel {
     protected void paintComponent(Graphics g1) {
         super.paintComponent(g1);
         Graphics2D g = (Graphics2D) g1;
-        if (model.getGhostShapeList() != null) {
-            for (Shape shape : model.getGhostShapeList()) {
-                if (shape.visible) {
-                    shape.draw(g);
-                }
-            }
-        }
-        for (Shape shape : model.getShapeList()) {
+        for (Shape shape : model.getDrawingShapeList()) {
             if (shape.visible) {
                 shape.draw(g);
             }

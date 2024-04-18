@@ -6,6 +6,7 @@ public abstract class Shape {
 
     public boolean selected = false;
     public boolean visible = true;
+    public int frontLayerLevel;
 
     public abstract void draw(Graphics2D g);
 
@@ -17,5 +18,9 @@ public abstract class Shape {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    public void setFrontLayerLevel(int frontLayerLevel) {
+        this.frontLayerLevel = frontLayerLevel;
     }
 }
