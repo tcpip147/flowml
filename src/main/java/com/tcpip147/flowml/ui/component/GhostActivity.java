@@ -9,7 +9,7 @@ public class GhostActivity extends Activity {
     public Activity activity;
 
     public GhostActivity(Activity activity) {
-        super(activity.x, activity.y, activity.width, activity.height);
+        super(activity.name, activity.x, activity.y, activity.width);
         this.activity = activity;
     }
 

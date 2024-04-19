@@ -1,9 +1,6 @@
 package com.tcpip147.flowml.ui;
 
-import com.tcpip147.flowml.ui.component.Activity;
-import com.tcpip147.flowml.ui.component.GhostActivity;
-import com.tcpip147.flowml.ui.component.RangeSelection;
-import com.tcpip147.flowml.ui.component.Shape;
+import com.tcpip147.flowml.ui.component.*;
 import com.tcpip147.flowml.ui.context.MouseContext;
 
 import java.awt.event.MouseEvent;
@@ -74,10 +71,22 @@ public class FmlController {
                 activity.setY(activity.y + diffY);
                 ghostActivity.setX((int) Math.round((activity.x + diffX) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE);
                 ghostActivity.setY((int) Math.round((activity.y + diffY) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE);
+                refreshDependentWires(activity);
             }
         }
         c.prevX = e.getX();
         c.prevY = e.getY();
+    }
+
+    private void refreshDependentWires(Activity activity) {
+        for (Shape shape : model.getShapeList()) {
+            if (shape instanceof Wire) {
+                Wire wire = (Wire) shape;
+                if (wire.source == activity || wire.target == activity) {
+                    wire.refresh();
+                }
+            }
+        }
     }
 
     public void setVisibleRangeSelection(MouseEvent e, boolean visible) {
@@ -117,16 +126,19 @@ public class FmlController {
     }
 
     public void adjustGhostShapeList() {
-        for (Shape shape : model.getGhostShapeList()) {
-            if (shape instanceof GhostActivity) {
-                GhostActivity ghostActivity = (GhostActivity) shape;
-                ghostActivity.activity.setX(ghostActivity.x);
-                ghostActivity.activity.setY(ghostActivity.y);
-                ghostActivity.activity.setWidth(ghostActivity.width);
-                ghostActivity.activity.setHeight(ghostActivity.height);
+        if (model.getGhostShapeList() != null) {
+            for (Shape shape : model.getGhostShapeList()) {
+                if (shape instanceof GhostActivity) {
+                    GhostActivity ghostActivity = (GhostActivity) shape;
+                    ghostActivity.activity.setX(ghostActivity.x);
+                    ghostActivity.activity.setY(ghostActivity.y);
+                    ghostActivity.activity.setWidth(ghostActivity.width);
+                    ghostActivity.activity.setHeight(ghostActivity.height);
+                    refreshDependentWires(ghostActivity.activity);
+                }
             }
+            model.setGhostShapeList(null);
         }
-        model.setGhostShapeList(null);
     }
 
     public void resizeGhostShape(MouseContext c, MouseEvent e) {
@@ -147,10 +159,16 @@ public class FmlController {
                 Activity activity = ghostActivity.activity;
                 if (c.resizePosition == 0) {
                     int x = (int) (e.getX() / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
-                    ghostActivity.setX(x);
-                    ghostActivity.setWidth(activity.width + c.originX - x);
+                    int width = (int) Math.round((activity.width + c.originX) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE - x;
+                    if (width > FmlCanvas.GRID_SIZE * 3) {
+                        ghostActivity.setX(x);
+                        ghostActivity.setWidth(width);
+                    }
                 } else {
-                    ghostActivity.setWidth((int) Math.round((activity.width - c.originX + e.getX()) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE);
+                    int width = (int) Math.round((activity.width - c.originX + e.getX()) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
+                    if (width > FmlCanvas.GRID_SIZE * 3) {
+                        ghostActivity.setWidth(width);
+                    }
                 }
                 ghostActivity.setFrontLayerLevel(1);
             }

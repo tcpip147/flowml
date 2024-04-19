@@ -1,7 +1,10 @@
 package com.tcpip147.flowml.ui.component;
 
 import com.tcpip147.flowml.ui.FmlColor;
+import org.apache.http.impl.conn.Wire;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.*;
 
 public class Activity extends Shape {
@@ -10,12 +13,19 @@ public class Activity extends Shape {
     public int y;
     public int width;
     public int height;
+    public String name;
+    public boolean primary;
+    public List<Wire> wireList = new ArrayList<>();
 
-    public Activity(int x, int y, int width, int height) {
+    public Activity(String name, int x, int y, int width) {
+        if ("$start".equals(name) || "$end".equals(name)) {
+            primary = true;
+        }
+        this.name = name;
         this.x = x;
         this.y = y;
         this.width = width;
-        this.height = height;
+        this.height = 26;
     }
 
     public void setX(int x) {
@@ -37,7 +47,10 @@ public class Activity extends Shape {
     @Override
     public void draw(Graphics2D g) {
         g.setColor(FmlColor.ACTIVITY_DEFAULT);
-        g.fillRect(x, y, width, height);
+        g.fillRoundRect(x, y, width, height, 5, 5);
+        g.setColor(FmlColor.ACTIVITY_NAME);
+        FontMetrics metrics = g.getFontMetrics();
+        g.drawString(name, x + (width - metrics.stringWidth(name)) / 2, y + (height - metrics.getHeight()) / 2 + metrics.getAscent());
         if (selected) {
             g.setColor(FmlColor.ACTIVITY_SELECTION_MARK_OUTER);
             g.fillRect(x - 3, y + height / 2 - 3, 6, 6);

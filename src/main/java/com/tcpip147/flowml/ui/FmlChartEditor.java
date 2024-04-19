@@ -10,6 +10,6 @@ public class FmlChartEditor extends JPanel {
     public FmlChartEditor(FmlContext ctx) {
         setLayout(new BorderLayout());
         this.ctx = ctx;
-        add(new FmlCanvas(), BorderLayout.CENTER);
+        add(new FmlCanvas(ctx), BorderLayout.CENTER);
     }
 }

@@ -1,9 +1,14 @@
 package com.tcpip147.flowml.ui;
 
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.tcpip147.flowml.ui.component.Activity;
 import com.tcpip147.flowml.ui.component.Shape;
+import com.tcpip147.flowml.ui.component.Wire;
 import com.tcpip147.flowml.ui.context.MouseContext;
 import com.tcpip147.flowml.ui.state.SelectionState;
+import com.tcpip147.flowml.util.FmlUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,16 +22,18 @@ public class FmlCanvas extends JPanel {
 
     public static final int GRID_SIZE = 15;
 
+    private final FmlContext ctx;
     private final FmlModel model = new FmlModel();
     private final FmlController controller = new FmlController(model);
     private final MouseContext mouseContext = new MouseContext();
     private SelectionState state = SelectionState.SELECT_READY;
 
-    public FmlCanvas() {
+    public FmlCanvas(FmlContext ctx) {
         setLayout(null);
 
-        Activity activity = new Activity(100, 100, 100, 30);
-        controller.addShape(activity);
+        this.ctx = ctx;
+
+        loadFile();
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -40,15 +47,18 @@ public class FmlCanvas extends JPanel {
                         Shape shape = model.getShapeInBound(e);
                         if (shape == null) {
                             controller.setVisibleRangeSelection(e, true);
-                            setCursor(FmlCursor.CROSS_HAIR);
                             state = SelectionState.RANGE_MODE;
                             repaint();
                         } else if (shape.selected) {
-                            state = SelectionState.DRAG_READY;
+                            if (shape instanceof Activity) {
+                                state = SelectionState.DRAG_READY;
+                            }
                         } else {
                             controller.selectShape(mouseContext, e);
-                            state = SelectionState.DRAG_READY;
                             repaint();
+                            if (shape instanceof Activity) {
+                                state = SelectionState.DRAG_READY;
+                            }
                         }
                     }
                 }
@@ -59,15 +69,18 @@ public class FmlCanvas extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (state == SelectionState.DRAG_READY) {
-                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > 100) {
+                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > 50) {
                         state = SelectionState.DRAG_STARTED;
                     }
                 } else if (state == SelectionState.DRAG_STARTED) {
                     controller.moveGhostShape(mouseContext, e);
                     repaint();
                 } else if (state == SelectionState.RANGE_MODE) {
-                    controller.resizeRangeSelection(mouseContext, e);
-                    repaint();
+                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > 50) {
+                        setCursor(FmlCursor.CROSS_HAIR);
+                        controller.resizeRangeSelection(mouseContext, e);
+                        repaint();
+                    }
                 } else if (state == SelectionState.RESIZE_READY) {
                     controller.resizeGhostShape(mouseContext, e);
                     repaint();
@@ -142,9 +155,42 @@ public class FmlCanvas extends JPanel {
     protected void paintComponent(Graphics g1) {
         super.paintComponent(g1);
         Graphics2D g = (Graphics2D) g1;
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         for (Shape shape : model.getDrawingShapeList()) {
             if (shape.visible) {
                 shape.draw(g);
+            }
+        }
+    }
+
+    private void loadFile() {
+        PsiFile psiFile = PsiManager.getInstance(ctx.getProject()).findFile(ctx.getFile());
+        PsiElement xmlDocument = FmlUtils.findFirstChildByName(psiFile, "PsiElement(XML_DOCUMENT)");
+        if (xmlDocument != null) {
+            PsiElement flow = FmlUtils.findFirstChildByName(xmlDocument, "XmlTag:flow");
+            if (flow != null) {
+                List<PsiElement> activityList = FmlUtils.findChildrenByName(flow, "XmlTag:activity");
+                for (PsiElement activity : activityList) {
+                    String name = FmlUtils.getAttributeValue(activity, "name");
+                    int x = Integer.parseInt(FmlUtils.getAttributeValue(activity, "x"));
+                    int y = Integer.parseInt(FmlUtils.getAttributeValue(activity, "y"));
+                    int width = Integer.parseInt(FmlUtils.getAttributeValue(activity, "width"));
+                    controller.addShape(new Activity(name, x, y, width));
+                }
+            }
+
+            flow = FmlUtils.findFirstChildByName(xmlDocument, "XmlTag:flow");
+            if (flow != null) {
+                List<PsiElement> wireList = FmlUtils.findChildrenByName(flow, "XmlTag:wire");
+                for (PsiElement wire : wireList) {
+                    String source = FmlUtils.getAttributeValue(wire, "source");
+                    String target = FmlUtils.getAttributeValue(wire, "target");
+                    String out = FmlUtils.getAttributeValue(wire, "out");
+                    String in = FmlUtils.getAttributeValue(wire, "in");
+                    int outx = Integer.parseInt(FmlUtils.getAttributeValue(wire, "outx"));
+                    int inx = Integer.parseInt(FmlUtils.getAttributeValue(wire, "inx"));
+                    controller.addShape(new Wire(model.getActivityByName(source), out, outx, model.getActivityByName(target), in, inx));
+                }
             }
         }
     }

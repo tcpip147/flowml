@@ -3,7 +3,10 @@ package com.tcpip147.flowml.ui;
 import com.tcpip147.flowml.ui.component.Activity;
 import com.tcpip147.flowml.ui.component.RangeSelection;
 import com.tcpip147.flowml.ui.component.Shape;
+import com.tcpip147.flowml.ui.component.Wire;
+import com.tcpip147.flowml.util.FmlUtils;
 
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,6 +64,18 @@ public class FmlModel {
                         (activity.y > rangeSelection.y && activity.y + activity.height < rangeSelection.y + rangeSelection.height)) {
                     list.add(activity);
                 }
+            } else if (shape instanceof Wire) {
+                Wire wire = (Wire) shape;
+                int matched = -1;
+                for (Point point : wire.points) {
+                    if (point.x > rangeSelection.x && point.x < rangeSelection.x + rangeSelection.width &&
+                            point.y > rangeSelection.y && point.y < rangeSelection.y + rangeSelection.height) {
+                        matched++;
+                    }
+                }
+                if (wire.points.size() == matched + 1) {
+                    list.add(wire);
+                }
             }
         }
         return list;
@@ -97,5 +112,17 @@ public class FmlModel {
             }
         });
         return drawingShapeList;
+    }
+
+    public Activity getActivityByName(String name) {
+        for (Shape shape : shapeList) {
+            if (shape instanceof Activity) {
+                Activity activity = (Activity) shape;
+                if (name.equals(activity.name)) {
+                    return activity;
+                }
+            }
+        }
+        return null;
     }
 }
