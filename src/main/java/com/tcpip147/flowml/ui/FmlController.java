@@ -1,8 +1,10 @@
 package com.tcpip147.flowml.ui;
 
 import com.tcpip147.flowml.ui.component.*;
+import com.tcpip147.flowml.ui.component.Shape;
 import com.tcpip147.flowml.ui.context.MouseContext;
 
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +91,93 @@ public class FmlController {
         }
     }
 
+    public void moveWireGhostShape(MouseContext c, MouseEvent e) {
+        if (model.getGhostShapeList() == null) {
+            model.setGhostShapeList(new ArrayList<>());
+            for (Shape shape : model.getShapeList()) {
+                if (shape.selected) {
+                    if (shape instanceof Wire) {
+                        Wire wire = (Wire) shape;
+                        model.addGhost(wire.createGhost());
+                    }
+                }
+            }
+        }
+        clearWireMarks();
+        for (Shape shape : model.getGhostShapeList()) {
+            if (shape instanceof GhostWire) {
+                GhostWire ghostWire = (GhostWire) shape;
+                Wire wire = ghostWire.wire;
+                wire.setVisible(false);
+                Activity anchor = c.wireMovePosition == 0 ? wire.target : wire.source;
+                Activity activity = model.getActivityMarkedWire(e);
+                if (activity != null) {
+                    if (activity != anchor) {
+                        activity.setShowWireMark(true);
+                    }
+                }
+
+                if (activity != null && anchor != null) {
+                    String direction;
+                    if (e.getX() < activity.x + FmlCanvas.GRID_SIZE / 2) {
+                        direction = "W";
+                    } else if (e.getX() > activity.x + activity.width - FmlCanvas.GRID_SIZE / 2) {
+                        direction = "E";
+                    } else if (e.getY() < activity.y + activity.height / 2) {
+                        direction = "N";
+                    } else {
+                        direction = "S";
+                    }
+
+                    int offsetX = ((e.getX() - activity.x + FmlCanvas.GRID_SIZE / 2) / FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
+                    if (offsetX > activity.width - FmlCanvas.GRID_SIZE / 2) {
+                        direction = "E";
+                    }
+                    if (c.wireMovePosition == 0) {
+                        ghostWire.sourceOut = direction;
+                        ghostWire.sourceX = offsetX;
+                        ghostWire.setSource(activity);
+                        ghostWire.setTarget(anchor);
+                    } else {
+                        ghostWire.targetIn = direction;
+                        ghostWire.targetX = offsetX;
+                        ghostWire.setSource(anchor);
+                        ghostWire.setTarget(activity);
+                    }
+                    ghostWire.refresh();
+                    ghostWire.setShowArrow(true);
+                } else {
+                    ghostWire.points.clear();
+                    if (c.wireMovePosition == 0) {
+                        ghostWire.points.add(new Point(e.getX(), e.getY()));
+                        ghostWire.points.add(getWirePoint(ghostWire.target, ghostWire.targetIn, ghostWire.targetX));
+                    } else {
+                        ghostWire.points.add(getWirePoint(ghostWire.source, ghostWire.sourceOut, ghostWire.sourceX));
+                        ghostWire.points.add(new Point(e.getX(), e.getY()));
+                    }
+                    ghostWire.setShowArrow(false);
+                }
+            }
+        }
+    }
+
+    private Point getWirePoint(Activity activity, String direction, int offsetX) {
+        int outX = "W".equals(direction) ? activity.x : "E".equals(direction) ? activity.x + activity.width : activity.x + offsetX;
+        int outY = "N".equals(direction) ? activity.y : "S".equals(direction) ? activity.y + activity.height : activity.y + activity.height / 2;
+        return new Point(outX, outY);
+    }
+
+    public void clearWireMarks() {
+        for (Shape shape : model.getShapeList()) {
+            if (shape instanceof Activity) {
+                Activity activity = (Activity) shape;
+                if (activity.showWireMark) {
+                    activity.setShowWireMark(false);
+                }
+            }
+        }
+    }
+
     public void setVisibleRangeSelection(MouseEvent e, boolean visible) {
         RangeSelection rangeSelection = model.getRangeSelection();
         if (visible) {
@@ -135,6 +224,22 @@ public class FmlController {
                     ghostActivity.activity.setWidth(ghostActivity.width);
                     ghostActivity.activity.setHeight(ghostActivity.height);
                     refreshDependentWires(ghostActivity.activity);
+                } else if (shape instanceof GhostWire) {
+                    GhostWire ghostWire = (GhostWire) shape;
+                    ghostWire.wire.setSource(ghostWire.source);
+                    ghostWire.wire.setSourceOut(ghostWire.sourceOut);
+                    ghostWire.wire.setSourceX(ghostWire.sourceX);
+                    ghostWire.wire.setTarget(ghostWire.target);
+                    ghostWire.wire.setTargetIn(ghostWire.targetIn);
+                    ghostWire.wire.setTargetX(ghostWire.targetX);
+                    ghostWire.wire.setVisible(true);
+                    if (ghostWire.wire.source.showWireMark) {
+                        ghostWire.wire.source.setShowWireMark(false);
+                    }
+                    if (ghostWire.wire.target.showWireMark) {
+                        ghostWire.wire.target.setShowWireMark(false);
+                    }
+                    ghostWire.wire.refresh();
                 }
             }
             model.setGhostShapeList(null);
@@ -159,18 +264,18 @@ public class FmlController {
                 Activity activity = ghostActivity.activity;
                 if (c.resizePosition == 0) {
                     int x = (int) (e.getX() / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
-                    int width = (int) Math.round((activity.width + c.originX) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE - x;
-                    if (width > FmlCanvas.GRID_SIZE * 3) {
+                    int width = (int) Math.round((activity.width + c.originX) / ((double) FmlCanvas.GRID_SIZE * 2)) * (FmlCanvas.GRID_SIZE * 2) - x;
+                    if (width > FmlCanvas.GRID_SIZE * 2) {
                         ghostActivity.setX(x);
                         ghostActivity.setWidth(width);
                     }
                 } else {
-                    int width = (int) Math.round((activity.width - c.originX + e.getX()) / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
-                    if (width > FmlCanvas.GRID_SIZE * 3) {
+                    int width = (int) Math.round((activity.width - c.originX + e.getX()) / ((double) FmlCanvas.GRID_SIZE * 2)) * (FmlCanvas.GRID_SIZE * 2);
+                    if (width > FmlCanvas.GRID_SIZE * 2) {
                         ghostActivity.setWidth(width);
                     }
                 }
-                ghostActivity.setFrontLayerLevel(1);
+                ghostActivity.setFrontLayerLevel(10);
             }
         }
         c.prevX = e.getX();

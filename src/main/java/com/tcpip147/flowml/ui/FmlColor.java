@@ -1,5 +1,6 @@
 package com.tcpip147.flowml.ui;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class FmlColor {
@@ -12,4 +13,7 @@ public class FmlColor {
     public static final Color GHOST_DEFAULT = Color.GREEN;
     public static final Color WIRE_DEFAULT = Color.LIGHT_GRAY;
     public static final Color WIRE_SELECTED = Color.GREEN;
+    public static final Color WIRE_SELECTION_MARK = Color.BLACK;
+    public static final Color WIRE_SELECTION_MARK_OUTER = Color.WHITE;
+    public static final Color DEFAULT = UIManager.getColor("Panel.background");
 }

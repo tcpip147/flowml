@@ -16,6 +16,7 @@ public class Activity extends Shape {
     public String name;
     public boolean primary;
     public List<Wire> wireList = new ArrayList<>();
+    public boolean showWireMark;
 
     public Activity(String name, int x, int y, int width) {
         if ("$start".equals(name) || "$end".equals(name)) {
@@ -26,6 +27,7 @@ public class Activity extends Shape {
         this.y = y;
         this.width = width;
         this.height = 26;
+        setFrontLayerLevel(1);
     }
 
     public void setX(int x) {
@@ -44,6 +46,10 @@ public class Activity extends Shape {
         this.height = height;
     }
 
+    public void setShowWireMark(boolean showWireMark) {
+        this.showWireMark = showWireMark;
+    }
+
     @Override
     public void draw(Graphics2D g) {
         g.setColor(FmlColor.ACTIVITY_DEFAULT);
@@ -58,6 +64,18 @@ public class Activity extends Shape {
             g.setColor(FmlColor.ACTIVITY_SELECTION_MARK);
             g.fillRect(x - 2, y + height / 2 - 2, 4, 4);
             g.fillRect(x + width - 2, y + height / 2 - 2, 4, 4);
+        }
+        if (showWireMark) {
+            g.setColor(FmlColor.WIRE_SELECTION_MARK_OUTER);
+            g.fillRect(x - 3, y + height / 2 - 3, 6, 6);
+            g.fillRect(x + width - 3, y + height / 2 - 3, 6, 6);
+            g.fillRect(x + width / 2 - 3, y - 3, 6, 6);
+            g.fillRect(x + width / 2 - 3, y + height - 3, 6, 6);
+            g.setColor(FmlColor.WIRE_SELECTION_MARK);
+            g.fillRect(x - 2, y + height / 2 - 2, 4, 4);
+            g.fillRect(x + width - 2, y + height / 2 - 2, 4, 4);
+            g.fillRect(x + width / 2 - 2, y - 2, 4, 4);
+            g.fillRect(x + width / 2 - 2, y + height - 2, 4, 4);
         }
     }
 

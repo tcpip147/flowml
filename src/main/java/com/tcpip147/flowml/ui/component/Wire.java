@@ -3,9 +3,10 @@ package com.tcpip147.flowml.ui.component;
 import com.tcpip147.flowml.ui.FmlColor;
 import com.tcpip147.flowml.ui.core.PathFinder;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.*;
 
 public class Wire extends Shape {
 
@@ -15,6 +16,7 @@ public class Wire extends Shape {
     public Activity target;
     public String targetIn;
     public int targetX;
+    public String transition;
     public List<Point> points = new ArrayList<>();
 
     public Wire(Activity source, String sourceOut, int sourceX, Activity target, String targetIn, int targetX) {
@@ -25,10 +27,41 @@ public class Wire extends Shape {
         this.targetIn = targetIn;
         this.targetX = targetX;
         refresh();
+        setFrontLayerLevel(2);
+    }
+
+    public void setTransition(String transition) {
+        this.transition = transition;
+    }
+
+    public void setSource(Activity source) {
+        this.source = source;
+    }
+
+    public void setSourceOut(String sourceOut) {
+        this.sourceOut = sourceOut;
+    }
+
+    public void setSourceX(int sourceX) {
+        this.sourceX = sourceX;
+    }
+
+    public void setTarget(Activity target) {
+        this.target = target;
+    }
+
+    public void setTargetIn(String targetIn) {
+        this.targetIn = targetIn;
+    }
+
+    public void setTargetX(int targetX) {
+        this.targetX = targetX;
     }
 
     public void refresh() {
-        PathFinder pathFinder = new PathFinder(source, sourceOut, source.x + sourceX, target, targetIn, target.x + targetX);
+        Rectangle sourceRect = new Rectangle(source.x, source.y, source.width, source.height);
+        Rectangle targetRect = new Rectangle(target.x, target.y, target.width, target.height);
+        PathFinder pathFinder = new PathFinder(sourceRect, sourceOut, source.x + sourceX, targetRect, targetIn, target.x + targetX);
         points = pathFinder.find();
         if (points.size() > 1) {
             digestPoints();
@@ -38,7 +71,7 @@ public class Wire extends Shape {
         }
     }
 
-    private void digestPoints() {
+    protected void digestPoints() {
         List<Point> digested = new ArrayList<>();
         digested.add(points.get(0));
         if (points.size() > 1) {
@@ -59,7 +92,7 @@ public class Wire extends Shape {
         points = digested;
     }
 
-    private void modifyLine() {
+    protected void modifyLine() {
         Point center = new Point(((source.x + source.width / 2) + (target.x + target.width / 2)) / 2, ((source.y + source.height / 2) + (target.y + target.height / 2)) / 2);
         for (int i = 1; i < points.size(); i++) {
             Point p1 = points.get(i - 1);
@@ -99,7 +132,7 @@ public class Wire extends Shape {
         return false;
     }
 
-    private void setOutlinePoint(Point point, String direction, int offset, Activity activity) {
+    protected void setOutlinePoint(Point point, String direction, int offset, Activity activity) {
         if ("N".equals(direction)) {
             point.x = activity.x + offset;
             point.y = activity.y;
@@ -117,12 +150,13 @@ public class Wire extends Shape {
 
     @Override
     public void draw(Graphics2D g) {
-        g.setColor(FmlColor.WIRE_DEFAULT);
         for (int i = 1; i < points.size(); i++) {
             Point current = points.get(i);
             Point prev = points.get(i - 1);
             if (selected) {
                 g.setColor(FmlColor.WIRE_SELECTED);
+            } else {
+                g.setColor(FmlColor.WIRE_DEFAULT);
             }
             g.drawLine(current.x, current.y, prev.x, prev.y);
             if (i == points.size() - 1) {
@@ -136,6 +170,31 @@ public class Wire extends Shape {
                     g.fillPolygon(new int[]{current.x - 7, current.x, current.x - 7}, new int[]{current.y - 5, current.y, current.y + 5}, 3);
                 }
             }
+        }
+
+        if (selected) {
+            if (points.size() > 1) {
+                Point start = points.get(0);
+                Point end = points.get(points.size() - 1);
+                g.setColor(FmlColor.WIRE_SELECTION_MARK_OUTER);
+                g.fillRect(start.x - 3, start.y - 3, 6, 6);
+                g.fillRect(end.x - 3, end.y - 3, 6, 6);
+                g.setColor(FmlColor.WIRE_SELECTION_MARK);
+                g.fillRect(start.x - 2, start.y - 2, 4, 4);
+                g.fillRect(end.x - 2, end.y - 2, 4, 4);
+            }
+        }
+
+        if (points.size() > 1) {
+            Point current = points.get(points.size() / 2);
+            Point prev = points.get(points.size() / 2 - 1);
+            FontMetrics metrics = g.getFontMetrics();
+            int x = (prev.x + current.x - metrics.stringWidth(transition)) / 2;
+            int y = (prev.y + current.y - metrics.getHeight()) / 2 + metrics.getAscent();
+            g.setColor(FmlColor.DEFAULT);
+            g.fillRect(x - 5, (prev.y + current.y - metrics.getHeight()) / 2, metrics.stringWidth(transition) + 10, metrics.getHeight());
+            g.setColor(FmlColor.WIRE_DEFAULT);
+            g.drawString(transition, x, y);
         }
     }
 
@@ -168,5 +227,9 @@ public class Wire extends Shape {
             }
         }
         return false;
+    }
+
+    public Shape createGhost() {
+        return new GhostWire(this);
     }
 }

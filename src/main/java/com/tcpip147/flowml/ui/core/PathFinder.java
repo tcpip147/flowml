@@ -29,7 +29,7 @@ public class PathFinder {
     private PriorityQueue<AStarNode> openNodes;
     private boolean[][] closedNodes;
 
-    public PathFinder(Activity source, String sourceOut, int sourceX, Activity target, String targetIn, int targetX) {
+    public PathFinder(Rectangle source, String sourceOut, int sourceX, Rectangle target, String targetIn, int targetX) {
         this.sourceOut = sourceOut;
         this.sourceX = sourceX;
         this.targetIn = targetIn;

@@ -20,7 +20,9 @@ import java.util.List;
 
 public class FmlCanvas extends JPanel {
 
-    public static final int GRID_SIZE = 15;
+    public static final int GRID_SIZE = 30;
+    private static final int DRAG_DETECT_DISTANCE = 30;
+    private static final int RANGE_DETECT_DISTANCE = 50;
 
     private final FmlContext ctx;
     private final FmlModel model = new FmlModel();
@@ -43,6 +45,9 @@ public class FmlCanvas extends JPanel {
                     if (model.isInResizableArea(e) > -1) {
                         state = SelectionState.RESIZE_READY;
                         mouseContext.resizePosition = model.isInResizableArea(e);
+                    } else if (model.isInWireMovableArea(e) > -1) {
+                        state = SelectionState.WIRE_MOVE_READY;
+                        mouseContext.wireMovePosition = model.isInWireMovableArea(e);
                     } else {
                         Shape shape = model.getShapeInBound(e);
                         if (shape == null) {
@@ -69,14 +74,14 @@ public class FmlCanvas extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (state == SelectionState.DRAG_READY) {
-                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > 50) {
+                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > DRAG_DETECT_DISTANCE) {
                         state = SelectionState.DRAG_STARTED;
                     }
                 } else if (state == SelectionState.DRAG_STARTED) {
                     controller.moveGhostShape(mouseContext, e);
                     repaint();
                 } else if (state == SelectionState.RANGE_MODE) {
-                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > 50) {
+                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > RANGE_DETECT_DISTANCE) {
                         setCursor(FmlCursor.CROSS_HAIR);
                         controller.resizeRangeSelection(mouseContext, e);
                         repaint();
@@ -87,6 +92,9 @@ public class FmlCanvas extends JPanel {
                     state = SelectionState.RESIZE_STARTED;
                 } else if (state == SelectionState.RESIZE_STARTED) {
                     controller.resizeGhostShape(mouseContext, e);
+                    repaint();
+                } else if (state == SelectionState.WIRE_MOVE_READY) {
+                    controller.moveWireGhostShape(mouseContext, e);
                     repaint();
                 }
             }
@@ -113,6 +121,10 @@ public class FmlCanvas extends JPanel {
                 } else if (state == SelectionState.RESIZE_READY) {
                     state = SelectionState.SELECT_READY;
                 } else if (state == SelectionState.RESIZE_STARTED) {
+                    controller.adjustGhostShapeList();
+                    repaint();
+                    state = SelectionState.SELECT_READY;
+                } else if (state == SelectionState.WIRE_MOVE_READY) {
                     controller.adjustGhostShapeList();
                     repaint();
                     state = SelectionState.SELECT_READY;
@@ -189,7 +201,12 @@ public class FmlCanvas extends JPanel {
                     String in = FmlUtils.getAttributeValue(wire, "in");
                     int outx = Integer.parseInt(FmlUtils.getAttributeValue(wire, "outx"));
                     int inx = Integer.parseInt(FmlUtils.getAttributeValue(wire, "inx"));
-                    controller.addShape(new Wire(model.getActivityByName(source), out, outx, model.getActivityByName(target), in, inx));
+                    Wire w = new Wire(model.getActivityByName(source), out, outx, model.getActivityByName(target), in, inx);
+                    String transition = FmlUtils.getAttributeValue(wire, "transition");
+                    if (transition != null) {
+                        w.setTransition(transition);
+                    }
+                    controller.addShape(w);
                 }
             }
         }

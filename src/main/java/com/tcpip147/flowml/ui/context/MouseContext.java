@@ -10,6 +10,7 @@ public class MouseContext implements Context {
     public int prevY;
     public boolean isControlDown;
     public int resizePosition;
+    public int wireMovePosition;
 
     @Override
     public void reset() {

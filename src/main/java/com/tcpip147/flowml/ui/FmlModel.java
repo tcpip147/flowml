@@ -4,6 +4,7 @@ import com.tcpip147.flowml.ui.component.Activity;
 import com.tcpip147.flowml.ui.component.RangeSelection;
 import com.tcpip147.flowml.ui.component.Shape;
 import com.tcpip147.flowml.ui.component.Wire;
+import com.tcpip147.flowml.ui.context.MouseContext;
 import com.tcpip147.flowml.util.FmlUtils;
 
 import java.awt.*;
@@ -64,18 +65,6 @@ public class FmlModel {
                         (activity.y > rangeSelection.y && activity.y + activity.height < rangeSelection.y + rangeSelection.height)) {
                     list.add(activity);
                 }
-            } else if (shape instanceof Wire) {
-                Wire wire = (Wire) shape;
-                int matched = -1;
-                for (Point point : wire.points) {
-                    if (point.x > rangeSelection.x && point.x < rangeSelection.x + rangeSelection.width &&
-                            point.y > rangeSelection.y && point.y < rangeSelection.y + rangeSelection.height) {
-                        matched++;
-                    }
-                }
-                if (wire.points.size() == matched + 1) {
-                    list.add(wire);
-                }
             }
         }
         return list;
@@ -91,6 +80,24 @@ public class FmlModel {
                         return 0;
                     } else if (activity.x + activity.width - 10 < e.getX() && activity.x + activity.width + 10 > e.getX() &&
                             activity.y < e.getY() && activity.y + activity.height > e.getY()) {
+                        return 1;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    public int isInWireMovableArea(MouseEvent e) {
+        for (Shape shape : shapeList) {
+            if (shape.selected) {
+                if (shape instanceof Wire) {
+                    Wire wire = (Wire) shape;
+                    Point start = wire.points.get(0);
+                    Point end = wire.points.get(wire.points.size() - 1);
+                    if (start.x - 10 < e.getX() && start.x + 10 > e.getX() && start.y - 10 < e.getY() && start.y + 10 > e.getY()) {
+                        return 0;
+                    } else if (end.x - 10 < e.getX() && end.x + 10 > e.getX() && end.y - 10 < e.getY() && end.y + 10 > e.getY()) {
                         return 1;
                     }
                 }
@@ -119,6 +126,18 @@ public class FmlModel {
             if (shape instanceof Activity) {
                 Activity activity = (Activity) shape;
                 if (name.equals(activity.name)) {
+                    return activity;
+                }
+            }
+        }
+        return null;
+    }
+
+    public Activity getActivityMarkedWire(MouseEvent e) {
+        for (Shape shape : shapeList) {
+            if (shape instanceof Activity) {
+                Activity activity = (Activity) shape;
+                if (e.getX() > activity.x - 5 && e.getX() < activity.x + activity.width + 5 && e.getY() > activity.y - 5 && e.getY() < activity.y + activity.height + 5) {
                     return activity;
                 }
             }

@@ -6,5 +6,6 @@ public enum SelectionState {
     DRAG_STARTED,
     RESIZE_READY,
     RESIZE_STARTED,
-    RANGE_MODE
+    RANGE_MODE,
+    WIRE_MOVE_READY
 }
