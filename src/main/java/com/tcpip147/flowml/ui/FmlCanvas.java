@@ -32,9 +32,8 @@ public class FmlCanvas extends JPanel {
 
     public FmlCanvas(FmlContext ctx) {
         setLayout(null);
-
         this.ctx = ctx;
-
+        ctx.setController(controller);
         loadFile();
 
         addMouseListener(new MouseAdapter() {
@@ -66,6 +65,10 @@ public class FmlCanvas extends JPanel {
                             }
                         }
                     }
+                } else if (state == SelectionState.ADD_WIRE_READY) {
+                    controller.createGhostWire(e);
+                    repaint();
+                    state = SelectionState.ADD_WIRE_TARGET_READY;
                 }
             }
         });
@@ -96,6 +99,9 @@ public class FmlCanvas extends JPanel {
                 } else if (state == SelectionState.WIRE_MOVE_READY) {
                     controller.moveWireGhostShape(mouseContext, e);
                     repaint();
+                } else if (state == SelectionState.ADD_WIRE_TARGET_READY) {
+                    controller.moveWireGhostShape(mouseContext, e);
+                    repaint();
                 }
             }
         });
@@ -107,10 +113,12 @@ public class FmlCanvas extends JPanel {
                     controller.selectShape(mouseContext, e);
                     repaint();
                     state = SelectionState.SELECT_READY;
+                    mouseContext.reset();
                 } else if (state == SelectionState.DRAG_STARTED) {
                     controller.adjustGhostShapeList();
                     repaint();
                     state = SelectionState.SELECT_READY;
+                    mouseContext.reset();
                 } else if (state == SelectionState.RANGE_MODE) {
                     setCursor(FmlCursor.DEFAULT);
                     List<Shape> shapeList = model.getShapeListInRange();
@@ -118,18 +126,30 @@ public class FmlCanvas extends JPanel {
                     controller.setVisibleRangeSelection(e, false);
                     repaint();
                     state = SelectionState.SELECT_READY;
+                    mouseContext.reset();
                 } else if (state == SelectionState.RESIZE_READY) {
                     state = SelectionState.SELECT_READY;
+                    mouseContext.reset();
                 } else if (state == SelectionState.RESIZE_STARTED) {
                     controller.adjustGhostShapeList();
                     repaint();
                     state = SelectionState.SELECT_READY;
+                    mouseContext.reset();
                 } else if (state == SelectionState.WIRE_MOVE_READY) {
                     controller.adjustGhostShapeList();
                     repaint();
                     state = SelectionState.SELECT_READY;
+                    mouseContext.reset();
+                } else if (state == SelectionState.ADD_ACTIVITY_READY) {
+                    controller.adjustGhostShapeList();
+                    controller.createGhostActivity(e.getX(), e.getY());
+                    repaint();
+                } else if (state == SelectionState.ADD_WIRE_TARGET_READY) {
+                    controller.adjustGhostShapeList();
+                    repaint();
+                    state = SelectionState.ADD_WIRE_READY;
+                    mouseContext.reset();
                 }
-                mouseContext.reset();
             }
         });
 
@@ -142,6 +162,12 @@ public class FmlCanvas extends JPanel {
                     } else {
                         setCursor(FmlCursor.DEFAULT);
                     }
+                } else if (state == SelectionState.ADD_ACTIVITY_READY) {
+                    controller.moveGhostShape(mouseContext, e);
+                    repaint();
+                } else if (state == SelectionState.ADD_WIRE_READY) {
+                    controller.setShowWireMarkInBound(e);
+                    repaint();
                 }
             }
         });
@@ -210,5 +236,13 @@ public class FmlCanvas extends JPanel {
                 }
             }
         }
+    }
+
+    public void setState(SelectionState state) {
+        this.state = state;
+    }
+
+    public FmlController getController() {
+        return controller;
     }
 }

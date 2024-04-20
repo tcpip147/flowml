@@ -80,6 +80,25 @@ public class FmlController {
         c.prevY = e.getY();
     }
 
+    public void createGhostActivity(int x, int y) {
+        if (model.getGhostShapeList() == null) {
+            model.setGhostShapeList(new ArrayList<>());
+            Activity activity = new Activity("", x, y, FmlCanvas.GRID_SIZE * 4);
+            model.add(activity);
+            model.addGhost(activity.createGhost());
+        }
+    }
+
+    public void releaseGhostShape() {
+        if (model.getGhostShapeList() != null) {
+            for (Shape shape : model.getGhostShapeList()) {
+                GhostActivity ghostActivity = (GhostActivity) shape;
+                model.getShapeList().remove(ghostActivity.activity);
+            }
+            model.setGhostShapeList(null);
+        }
+    }
+
     private void refreshDependentWires(Activity activity) {
         for (Shape shape : model.getShapeList()) {
             if (shape instanceof Wire) {
@@ -178,6 +197,17 @@ public class FmlController {
         }
     }
 
+    public void clearSelected() {
+        for (Shape shape : model.getShapeList()) {
+            if (shape instanceof Activity) {
+                Activity activity = (Activity) shape;
+                if (activity.selected) {
+                    activity.setSelected(false);
+                }
+            }
+        }
+    }
+
     public void setVisibleRangeSelection(MouseEvent e, boolean visible) {
         RangeSelection rangeSelection = model.getRangeSelection();
         if (visible) {
@@ -262,16 +292,17 @@ public class FmlController {
             if (shape instanceof GhostActivity) {
                 GhostActivity ghostActivity = (GhostActivity) shape;
                 Activity activity = ghostActivity.activity;
+                int unit = FmlCanvas.GRID_SIZE * 2;
                 if (c.resizePosition == 0) {
-                    int x = (int) (e.getX() / (double) FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
-                    int width = (int) Math.round((activity.width + c.originX) / ((double) FmlCanvas.GRID_SIZE * 2)) * (FmlCanvas.GRID_SIZE * 2) - x;
-                    if (width > FmlCanvas.GRID_SIZE * 2) {
+                    int x = activity.x + (int) Math.round((e.getX() - c.originX) / (double) unit) * unit;
+                    int width = activity.x + activity.width - x;
+                    if (width > unit) {
                         ghostActivity.setX(x);
                         ghostActivity.setWidth(width);
                     }
                 } else {
-                    int width = (int) Math.round((activity.width - c.originX + e.getX()) / ((double) FmlCanvas.GRID_SIZE * 2)) * (FmlCanvas.GRID_SIZE * 2);
-                    if (width > FmlCanvas.GRID_SIZE * 2) {
+                    int width = activity.width + (int) Math.round((e.getX() - c.originX) / (double) unit) * unit;
+                    if (width > unit) {
                         ghostActivity.setWidth(width);
                     }
                 }
@@ -280,5 +311,42 @@ public class FmlController {
         }
         c.prevX = e.getX();
         c.prevY = e.getY();
+    }
+
+    public void setShowWireMarkInBound(MouseEvent e) {
+        Activity activity = model.getActivityMarkedWire(e);
+        if (activity != null) {
+            activity.setShowWireMark(true);
+        } else {
+            clearWireMarks();
+        }
+    }
+
+    public void createGhostWire(MouseEvent e) {
+        Activity activity = model.getActivityMarkedWire(e);
+        if (activity != null) {
+            String direction;
+            if (e.getX() < activity.x + FmlCanvas.GRID_SIZE / 2) {
+                direction = "W";
+            } else if (e.getX() > activity.x + activity.width - FmlCanvas.GRID_SIZE / 2) {
+                direction = "E";
+            } else if (e.getY() < activity.y + activity.height / 2) {
+                direction = "N";
+            } else {
+                direction = "S";
+            }
+
+            int offsetX = ((e.getX() - activity.x + FmlCanvas.GRID_SIZE / 2) / FmlCanvas.GRID_SIZE) * FmlCanvas.GRID_SIZE;
+            if (offsetX > activity.width - FmlCanvas.GRID_SIZE / 2) {
+                direction = "E";
+            }
+
+            if (model.getGhostShapeList() == null) {
+                model.setGhostShapeList(new ArrayList<>());
+                Wire wire = new Wire(activity, direction, offsetX, null, null, 0);
+                model.add(wire);
+                model.addGhost(wire.createGhost());
+            }
+        }
     }
 }

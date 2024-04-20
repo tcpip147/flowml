@@ -59,15 +59,17 @@ public class Wire extends Shape {
     }
 
     public void refresh() {
-        Rectangle sourceRect = new Rectangle(source.x, source.y, source.width, source.height);
-        Rectangle targetRect = new Rectangle(target.x, target.y, target.width, target.height);
-        PathFinder pathFinder = new PathFinder(sourceRect, sourceOut, source.x + sourceX, targetRect, targetIn, target.x + targetX);
-        points = pathFinder.find();
-        if (points.size() > 1) {
-            digestPoints();
-            modifyLine();
-            setOutlinePoint(points.get(0), sourceOut, sourceX, source);
-            setOutlinePoint(points.get(points.size() - 1), targetIn, targetX, target);
+        if (source != null && target != null) {
+            Rectangle sourceRect = new Rectangle(source.x, source.y, source.width, source.height);
+            Rectangle targetRect = new Rectangle(target.x, target.y, target.width, target.height);
+            PathFinder pathFinder = new PathFinder(sourceRect, sourceOut, source.x + sourceX, targetRect, targetIn, target.x + targetX);
+            points = pathFinder.find();
+            if (points.size() > 1) {
+                digestPoints();
+                modifyLine();
+                setOutlinePoint(points.get(0), sourceOut, sourceX, source);
+                setOutlinePoint(points.get(points.size() - 1), targetIn, targetX, target);
+            }
         }
     }
 
@@ -165,7 +167,7 @@ public class Wire extends Shape {
                 } else if ("E".equals(targetIn)) {
                     g.fillPolygon(new int[]{current.x + 7, current.x, current.x + 7}, new int[]{current.y - 5, current.y, current.y + 5}, 3);
                 } else if ("S".equals(targetIn)) {
-                    g.fillPolygon(new int[]{current.x - 5, current.x, current.x + 5}, new int[]{current.y - 7, current.y, current.y + 7}, 3);
+                    g.fillPolygon(new int[]{current.x - 5, current.x, current.x + 5}, new int[]{current.y + 7, current.y, current.y + 7}, 3);
                 } else {
                     g.fillPolygon(new int[]{current.x - 7, current.x, current.x - 7}, new int[]{current.y - 5, current.y, current.y + 5}, 3);
                 }
@@ -185,16 +187,22 @@ public class Wire extends Shape {
             }
         }
 
-        if (points.size() > 1) {
-            Point current = points.get(points.size() / 2);
-            Point prev = points.get(points.size() / 2 - 1);
-            FontMetrics metrics = g.getFontMetrics();
-            int x = (prev.x + current.x - metrics.stringWidth(transition)) / 2;
-            int y = (prev.y + current.y - metrics.getHeight()) / 2 + metrics.getAscent();
-            g.setColor(FmlColor.DEFAULT);
-            g.fillRect(x - 5, (prev.y + current.y - metrics.getHeight()) / 2, metrics.stringWidth(transition) + 10, metrics.getHeight());
-            g.setColor(FmlColor.WIRE_DEFAULT);
-            g.drawString(transition, x, y);
+        if (transition != null) {
+            if (points.size() > 1) {
+                Point current = points.get(points.size() / 2);
+                Point prev = points.get(points.size() / 2 - 1);
+                FontMetrics metrics = g.getFontMetrics();
+                int x = (prev.x + current.x - metrics.stringWidth(transition)) / 2;
+                int y = (prev.y + current.y - metrics.getHeight()) / 2 + metrics.getAscent();
+                g.setColor(FmlColor.DEFAULT);
+                g.fillRect(x - 5, (prev.y + current.y - metrics.getHeight()) / 2, metrics.stringWidth(transition) + 10, metrics.getHeight());
+                if (selected) {
+                    g.setColor(FmlColor.WIRE_SELECTED);
+                } else {
+                    g.setColor(FmlColor.WIRE_DEFAULT);
+                }
+                g.drawString(transition, x, y);
+            }
         }
     }
 

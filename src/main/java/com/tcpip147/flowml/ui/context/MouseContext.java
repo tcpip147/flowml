@@ -20,6 +20,7 @@ public class MouseContext implements Context {
         prevY = 0;
         isControlDown = false;
         resizePosition = 0;
+        wireMovePosition = -1;
     }
 
     public void setUp(MouseEvent e) {

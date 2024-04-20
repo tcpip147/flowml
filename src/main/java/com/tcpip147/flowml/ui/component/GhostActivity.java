@@ -13,6 +13,10 @@ public class GhostActivity extends Activity {
         this.activity = activity;
     }
 
+    public GhostActivity(String name, int x, int y, int width) {
+        super(name, x, y, width);
+    }
+
     @Override
     public void draw(Graphics2D g) {
         g.setColor(FmlColor.GHOST_DEFAULT);

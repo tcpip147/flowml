@@ -15,6 +15,8 @@ public class FmlContext {
     private PropertyChangeListener propertyChangeListener;
     private boolean modified;
     private String prevUndoText;
+    private FmlCanvas canvas;
+    private FmlController controller;
 
     public FmlContext(Project project, VirtualFile file, FmlFileEditor fileEditor) {
         this.project = project;
@@ -53,5 +55,21 @@ public class FmlContext {
 
     public void setPrevUndoText(String prevUndoText) {
         this.prevUndoText = prevUndoText;
+    }
+
+    public FmlCanvas getCanvas() {
+        return canvas;
+    }
+
+    public void setCanvas(FmlCanvas canvas) {
+        this.canvas = canvas;
+    }
+
+    public FmlController getController() {
+        return controller;
+    }
+
+    public void setController(FmlController controller) {
+        this.controller = controller;
     }
 }
