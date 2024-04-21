@@ -35,6 +35,7 @@ public class FmlCanvas extends JPanel {
         this.ctx = ctx;
         ctx.setController(controller);
         loadFile();
+        setPreferredSize(new Dimension(1000, 2000));
 
         addMouseListener(new MouseAdapter() {
             @Override
@@ -194,11 +195,22 @@ public class FmlCanvas extends JPanel {
         super.paintComponent(g1);
         Graphics2D g = (Graphics2D) g1;
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        int maxX = 0;
+        int maxY = 0;
+        int order = 0;
         for (Shape shape : model.getDrawingShapeList()) {
             if (shape.visible) {
                 shape.draw(g);
+                if (shape instanceof Activity) {
+                    Activity activity = (Activity) shape;
+                    maxX = Math.max(maxX, activity.x + activity.width);
+                    maxY = Math.max(maxY, activity.y + activity.height);
+                }
+                shape.setRenderingOrder(order++);
             }
         }
+        setPreferredSize(new Dimension(maxX, maxY));
+        revalidate();
     }
 
     private void loadFile() {

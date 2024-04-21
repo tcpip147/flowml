@@ -14,13 +14,16 @@ public class AddActivityModeAction extends FmlToggleAction {
     }
 
     public void setSelected(boolean selected) {
-        super.setSelected(selected);
-        if (selected) {
-            ctx.getCanvas().setState(SelectionState.ADD_ACTIVITY_READY);
-            ctx.getController().createGhostActivity(0, 0);
-        } else {
-            ctx.getController().releaseGhostShape();
-            ctx.getCanvas().repaint();
+        if (this.selected != selected) {
+            super.setSelected(selected);
+            if (selected) {
+                ctx.getCanvas().setState(SelectionState.ADD_ACTIVITY_READY);
+                ctx.getController().createGhostActivity(0, 0);
+                ctx.getCanvas().repaint();
+            } else {
+                ctx.getController().releaseGhostShape();
+                ctx.getCanvas().repaint();
+            }
         }
     }
 }

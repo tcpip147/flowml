@@ -16,12 +16,14 @@ public class SelectionModeAction extends FmlToggleAction {
     }
 
     public void setSelected(boolean selected) {
-        super.setSelected(selected);
-        if (selected) {
-            ctx.getCanvas().setState(SelectionState.SELECT_READY);
-        } else {
-            ctx.getController().clearSelected();
-            ctx.getCanvas().repaint();
+        if (this.selected != selected) {
+            super.setSelected(selected);
+            if (selected) {
+                ctx.getCanvas().setState(SelectionState.SELECT_READY);
+            } else {
+                ctx.getController().clearSelected();
+                ctx.getCanvas().repaint();
+            }
         }
     }
 }

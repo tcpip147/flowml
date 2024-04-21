@@ -28,7 +28,9 @@ public class FmlToggleAction extends ToggleAction {
 
     @Override
     public void setSelected(@NotNull AnActionEvent e, boolean state) {
-        setSelected(state);
-        observer.notifySelected(this);
+        if (state) {
+            observer.notifySelected(this);
+            setSelected(true);
+        }
     }
 }

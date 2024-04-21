@@ -7,6 +7,7 @@ public abstract class Shape {
     public boolean selected = false;
     public boolean visible = true;
     public int frontLayerLevel;
+    public int renderingOrder;
 
     public abstract void draw(Graphics2D g);
 
@@ -22,5 +23,9 @@ public abstract class Shape {
 
     public void setFrontLayerLevel(int frontLayerLevel) {
         this.frontLayerLevel = frontLayerLevel;
+    }
+
+    public void setRenderingOrder(int renderingOrder) {
+        this.renderingOrder = renderingOrder;
     }
 }

@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.tcpip147.flowml.action.AddActivityModeAction;
 import com.tcpip147.flowml.action.AddWireModeAction;
@@ -25,7 +26,7 @@ public class FmlChartEditor extends JPanel {
         FmlCanvas canvas = new FmlCanvas(ctx);
         ctx.setCanvas(canvas);
         createToolbarPanel();
-        add(canvas, BorderLayout.CENTER);
+        add(new JBScrollPane(canvas), BorderLayout.CENTER);
     }
 
     private void createToolbarPanel() {

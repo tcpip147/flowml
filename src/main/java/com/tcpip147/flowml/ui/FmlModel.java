@@ -11,12 +11,13 @@ import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 public class FmlModel {
 
     private RangeSelection rangeSelection = new RangeSelection();
-    private List<Shape> shapeList = new ArrayList<>();
+    private List<Shape> shapeList = new LinkedList<>();
     private List<Shape> ghostShapeList;
 
 
@@ -115,6 +116,13 @@ public class FmlModel {
         drawingShapeList.sort(new Comparator<Shape>() {
             @Override
             public int compare(Shape o1, Shape o2) {
+                if (o1.selected) {
+                    return 1;
+                } else if (o2.selected) {
+                    return -1;
+                } else if (o1.renderingOrder > 0 || o2.renderingOrder > 0) {
+                    return o1.renderingOrder - o2.renderingOrder;
+                }
                 return o1.frontLayerLevel - o2.frontLayerLevel;
             }
         });

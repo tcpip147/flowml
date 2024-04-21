@@ -16,12 +16,14 @@ public class AddWireModeAction extends FmlToggleAction {
     }
 
     public void setSelected(boolean selected) {
-        super.setSelected(selected);
-        if (selected) {
-            ctx.getCanvas().setState(SelectionState.ADD_WIRE_READY);
-        } else {
-            ctx.getController().clearWireMarks();
-            ctx.getCanvas().repaint();
+        if (this.selected != selected) {
+            super.setSelected(selected);
+            if (selected) {
+                ctx.getCanvas().setState(SelectionState.ADD_WIRE_READY);
+            } else {
+                ctx.getController().clearWireMarks();
+                ctx.getCanvas().repaint();
+            }
         }
     }
 }

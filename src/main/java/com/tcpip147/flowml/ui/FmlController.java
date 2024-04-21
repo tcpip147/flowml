@@ -1,12 +1,13 @@
 package com.tcpip147.flowml.ui;
 
-import com.tcpip147.flowml.ui.component.*;
 import com.tcpip147.flowml.ui.component.Shape;
+import com.tcpip147.flowml.ui.component.*;
 import com.tcpip147.flowml.ui.context.MouseContext;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class FmlController {
@@ -22,11 +23,15 @@ public class FmlController {
     }
 
     public void selectShape(MouseContext c, MouseEvent e) {
-        for (Shape shape : model.getShapeList()) {
-            if (shape.inBound(e.getPoint())) {
+        boolean alreadyRenderedTopLevel = false;
+        List<Shape> shapeList = model.getShapeList();
+        shapeList.sort((a, b) -> b.renderingOrder - a.renderingOrder);
+        for (Shape shape : shapeList) {
+            if (shape.inBound(e.getPoint()) && !alreadyRenderedTopLevel) {
                 if (!shape.selected) {
                     shape.setSelected(true);
                 }
+                alreadyRenderedTopLevel = true;
             } else {
                 if (shape.selected) {
                     if (!c.isControlDown) {
@@ -55,7 +60,7 @@ public class FmlController {
         int diffX = e.getX() - c.prevX;
         int diffY = e.getY() - c.prevY;
         if (model.getGhostShapeList() == null) {
-            model.setGhostShapeList(new ArrayList<>());
+            model.setGhostShapeList(new LinkedList<>());
             for (Shape shape : model.getShapeList()) {
                 if (shape.selected) {
                     if (shape instanceof Activity) {
@@ -83,7 +88,8 @@ public class FmlController {
     public void createGhostActivity(int x, int y) {
         if (model.getGhostShapeList() == null) {
             model.setGhostShapeList(new ArrayList<>());
-            Activity activity = new Activity("", x, y, FmlCanvas.GRID_SIZE * 4);
+            Activity activity = new Activity("Activity 1", x, y, FmlCanvas.GRID_SIZE * 4);
+            activity.setSelected(true);
             model.add(activity);
             model.addGhost(activity.createGhost());
         }
@@ -307,6 +313,7 @@ public class FmlController {
                     }
                 }
                 ghostActivity.setFrontLayerLevel(10);
+                ghostActivity.setSelected(true);
             }
         }
         c.prevX = e.getX();

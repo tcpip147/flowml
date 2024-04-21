@@ -240,4 +240,12 @@ public class Wire extends Shape {
     public Shape createGhost() {
         return new GhostWire(this);
     }
+
+    @Override
+    public String toString() {
+        return "Wire{" +
+                "transition='" + transition + '\'' +
+                ", selected='" + selected + "'" +
+                '}';
+    }
 }

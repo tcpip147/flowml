@@ -31,11 +31,19 @@ public class Activity extends Shape {
     }
 
     public void setX(int x) {
-        this.x = x;
+        if (x < 0) {
+            this.x = 0;
+        } else {
+            this.x = x;
+        }
     }
 
     public void setY(int y) {
-        this.y = y;
+        if (y < 0) {
+            this.y = 0;
+        } else {
+            this.y = y;
+        }
     }
 
     public void setWidth(int width) {
@@ -52,6 +60,8 @@ public class Activity extends Shape {
 
     @Override
     public void draw(Graphics2D g) {
+        g.setColor(FmlColor.ACTIVITY_OUTLINE);
+        g.fillRoundRect(x - 1, y - 1, width + 2, height + 2, 5, 5);
         g.setColor(FmlColor.ACTIVITY_DEFAULT);
         g.fillRoundRect(x, y, width, height, 5, 5);
         g.setColor(FmlColor.ACTIVITY_NAME);
@@ -86,5 +96,15 @@ public class Activity extends Shape {
 
     public Shape createGhost() {
         return new GhostActivity(this);
+    }
+
+    @Override
+    public String toString() {
+        return hashCode() + " Activity{" +
+                "x=" + x +
+                ", y=" + y +
+                ", name='" + name + '\'' +
+                ", selected='" + selected + "'" +
+                '}';
     }
 }
