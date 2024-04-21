@@ -12,10 +12,7 @@ import com.tcpip147.flowml.util.FmlUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.util.List;
 
 public class FmlCanvas extends JPanel {
@@ -35,41 +32,47 @@ public class FmlCanvas extends JPanel {
         this.ctx = ctx;
         ctx.setController(controller);
         loadFile();
-        setPreferredSize(new Dimension(1000, 2000));
+        setFocusable(true);
 
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                if (state == SelectionState.SELECT_READY) {
-                    mouseContext.setUp(e);
-                    if (model.isInResizableArea(e) > -1) {
-                        state = SelectionState.RESIZE_READY;
-                        mouseContext.resizePosition = model.isInResizableArea(e);
-                    } else if (model.isInWireMovableArea(e) > -1) {
-                        state = SelectionState.WIRE_MOVE_READY;
-                        mouseContext.wireMovePosition = model.isInWireMovableArea(e);
-                    } else {
-                        Shape shape = model.getShapeInBound(e);
-                        if (shape == null) {
-                            controller.setVisibleRangeSelection(e, true);
-                            state = SelectionState.RANGE_MODE;
-                            repaint();
-                        } else if (shape.selected) {
-                            if (shape instanceof Activity) {
-                                state = SelectionState.DRAG_READY;
-                            }
+                requestFocusInWindow();
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (state == SelectionState.SELECT_READY) {
+                        mouseContext.setUp(e);
+                        if (model.isInResizableArea(e) > -1) {
+                            state = SelectionState.RESIZE_READY;
+                            mouseContext.resizePosition = model.isInResizableArea(e);
+                        } else if (model.isInWireMovableArea(e) > -1) {
+                            state = SelectionState.WIRE_MOVE_READY;
+                            mouseContext.wireMovePosition = model.isInWireMovableArea(e);
                         } else {
-                            controller.selectShape(mouseContext, e);
-                            repaint();
-                            if (shape instanceof Activity) {
-                                state = SelectionState.DRAG_READY;
+                            Shape shape = model.getShapeInBound(e);
+                            if (shape == null) {
+                                controller.setVisibleRangeSelection(e, true);
+                                state = SelectionState.RANGE_MODE;
+                                repaint();
+                            } else if (shape.selected) {
+                                if (shape instanceof Activity) {
+                                    state = SelectionState.DRAG_READY;
+                                }
+                            } else {
+                                controller.selectShape(mouseContext, e);
+                                repaint();
+                                if (shape instanceof Activity) {
+                                    state = SelectionState.DRAG_READY;
+                                }
                             }
                         }
+                    } else if (state == SelectionState.ADD_WIRE_READY) {
+                        controller.createGhostWire(e);
+                        repaint();
+                        state = SelectionState.ADD_WIRE_TARGET_READY;
                     }
-                } else if (state == SelectionState.ADD_WIRE_READY) {
-                    controller.createGhostWire(e);
-                    repaint();
-                    state = SelectionState.ADD_WIRE_TARGET_READY;
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    state = SelectionState.SELECT_READY;
+                    ctx.getToggleActionManager().clickAction("Selection");
                 }
             }
         });
@@ -77,32 +80,34 @@ public class FmlCanvas extends JPanel {
         addMouseMotionListener(new MouseAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
-                if (state == SelectionState.DRAG_READY) {
-                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > DRAG_DETECT_DISTANCE) {
-                        state = SelectionState.DRAG_STARTED;
-                    }
-                } else if (state == SelectionState.DRAG_STARTED) {
-                    controller.moveGhostShape(mouseContext, e);
-                    repaint();
-                } else if (state == SelectionState.RANGE_MODE) {
-                    if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > RANGE_DETECT_DISTANCE) {
-                        setCursor(FmlCursor.CROSS_HAIR);
-                        controller.resizeRangeSelection(mouseContext, e);
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (state == SelectionState.DRAG_READY) {
+                        if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > DRAG_DETECT_DISTANCE) {
+                            state = SelectionState.DRAG_STARTED;
+                        }
+                    } else if (state == SelectionState.DRAG_STARTED) {
+                        controller.moveGhostShape(mouseContext, e);
+                        repaint();
+                    } else if (state == SelectionState.RANGE_MODE) {
+                        if (Math.pow(mouseContext.originX - e.getX(), 2) + Math.pow(mouseContext.originY - e.getY(), 2) > RANGE_DETECT_DISTANCE) {
+                            setCursor(FmlCursor.CROSS_HAIR);
+                            controller.resizeRangeSelection(mouseContext, e);
+                            repaint();
+                        }
+                    } else if (state == SelectionState.RESIZE_READY) {
+                        controller.resizeGhostShape(mouseContext, e);
+                        repaint();
+                        state = SelectionState.RESIZE_STARTED;
+                    } else if (state == SelectionState.RESIZE_STARTED) {
+                        controller.resizeGhostShape(mouseContext, e);
+                        repaint();
+                    } else if (state == SelectionState.WIRE_MOVE_READY) {
+                        controller.moveWireGhostShape(mouseContext, e);
+                        repaint();
+                    } else if (state == SelectionState.ADD_WIRE_TARGET_READY) {
+                        controller.moveWireGhostShape(mouseContext, e);
                         repaint();
                     }
-                } else if (state == SelectionState.RESIZE_READY) {
-                    controller.resizeGhostShape(mouseContext, e);
-                    repaint();
-                    state = SelectionState.RESIZE_STARTED;
-                } else if (state == SelectionState.RESIZE_STARTED) {
-                    controller.resizeGhostShape(mouseContext, e);
-                    repaint();
-                } else if (state == SelectionState.WIRE_MOVE_READY) {
-                    controller.moveWireGhostShape(mouseContext, e);
-                    repaint();
-                } else if (state == SelectionState.ADD_WIRE_TARGET_READY) {
-                    controller.moveWireGhostShape(mouseContext, e);
-                    repaint();
                 }
             }
         });
@@ -110,46 +115,48 @@ public class FmlCanvas extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseReleased(MouseEvent e) {
-                if (state == SelectionState.DRAG_READY) {
-                    controller.selectShape(mouseContext, e);
-                    repaint();
-                    state = SelectionState.SELECT_READY;
-                    mouseContext.reset();
-                } else if (state == SelectionState.DRAG_STARTED) {
-                    controller.adjustGhostShapeList();
-                    repaint();
-                    state = SelectionState.SELECT_READY;
-                    mouseContext.reset();
-                } else if (state == SelectionState.RANGE_MODE) {
-                    setCursor(FmlCursor.DEFAULT);
-                    List<Shape> shapeList = model.getShapeListInRange();
-                    controller.selectShapeInList(shapeList);
-                    controller.setVisibleRangeSelection(e, false);
-                    repaint();
-                    state = SelectionState.SELECT_READY;
-                    mouseContext.reset();
-                } else if (state == SelectionState.RESIZE_READY) {
-                    state = SelectionState.SELECT_READY;
-                    mouseContext.reset();
-                } else if (state == SelectionState.RESIZE_STARTED) {
-                    controller.adjustGhostShapeList();
-                    repaint();
-                    state = SelectionState.SELECT_READY;
-                    mouseContext.reset();
-                } else if (state == SelectionState.WIRE_MOVE_READY) {
-                    controller.adjustGhostShapeList();
-                    repaint();
-                    state = SelectionState.SELECT_READY;
-                    mouseContext.reset();
-                } else if (state == SelectionState.ADD_ACTIVITY_READY) {
-                    controller.adjustGhostShapeList();
-                    controller.createGhostActivity(e.getX(), e.getY());
-                    repaint();
-                } else if (state == SelectionState.ADD_WIRE_TARGET_READY) {
-                    controller.adjustGhostShapeList();
-                    repaint();
-                    state = SelectionState.ADD_WIRE_READY;
-                    mouseContext.reset();
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    if (state == SelectionState.DRAG_READY) {
+                        controller.selectShape(mouseContext, e);
+                        repaint();
+                        state = SelectionState.SELECT_READY;
+                        mouseContext.reset();
+                    } else if (state == SelectionState.DRAG_STARTED) {
+                        controller.adjustGhostShapeList();
+                        repaint();
+                        state = SelectionState.SELECT_READY;
+                        mouseContext.reset();
+                    } else if (state == SelectionState.RANGE_MODE) {
+                        setCursor(FmlCursor.DEFAULT);
+                        List<Shape> shapeList = model.getShapeListInRange();
+                        controller.selectShapeInList(shapeList);
+                        controller.setVisibleRangeSelection(e, false);
+                        repaint();
+                        state = SelectionState.SELECT_READY;
+                        mouseContext.reset();
+                    } else if (state == SelectionState.RESIZE_READY) {
+                        state = SelectionState.SELECT_READY;
+                        mouseContext.reset();
+                    } else if (state == SelectionState.RESIZE_STARTED) {
+                        controller.adjustGhostShapeList();
+                        repaint();
+                        state = SelectionState.SELECT_READY;
+                        mouseContext.reset();
+                    } else if (state == SelectionState.WIRE_MOVE_READY) {
+                        controller.adjustGhostShapeList();
+                        repaint();
+                        state = SelectionState.SELECT_READY;
+                        mouseContext.reset();
+                    } else if (state == SelectionState.ADD_ACTIVITY_READY) {
+                        controller.adjustGhostShapeList();
+                        controller.createGhostActivity(e.getX(), e.getY());
+                        repaint();
+                    } else if (state == SelectionState.ADD_WIRE_TARGET_READY) {
+                        controller.adjustGhostShapeList();
+                        repaint();
+                        state = SelectionState.ADD_WIRE_READY;
+                        mouseContext.reset();
+                    }
                 }
             }
         });
@@ -176,15 +183,20 @@ public class FmlCanvas extends JPanel {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == 17) {
+                if (e.isControlDown()) {
                     mouseContext.isControlDown = true;
                 }
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == 17) {
+                if (e.isControlDown()) {
                     mouseContext.isControlDown = false;
+                } else if (e.getKeyCode() == 127) {
+                    if (state == SelectionState.SELECT_READY) {
+                        controller.removeSelectedShape();
+                        repaint();
+                    }
                 }
             }
         });

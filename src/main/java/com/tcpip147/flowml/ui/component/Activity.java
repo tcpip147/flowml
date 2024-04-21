@@ -1,10 +1,7 @@
 package com.tcpip147.flowml.ui.component;
 
 import com.tcpip147.flowml.ui.FmlColor;
-import org.apache.http.impl.conn.Wire;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.awt.*;
 
 public class Activity extends Shape {
@@ -15,7 +12,6 @@ public class Activity extends Shape {
     public int height;
     public String name;
     public boolean primary;
-    public List<Wire> wireList = new ArrayList<>();
     public boolean showWireMark;
 
     public Activity(String name, int x, int y, int width) {

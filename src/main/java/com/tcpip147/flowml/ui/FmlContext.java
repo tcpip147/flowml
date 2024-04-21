@@ -3,6 +3,7 @@ package com.tcpip147.flowml.ui;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.tcpip147.flowml.action.ToggleActionManager;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -17,6 +18,7 @@ public class FmlContext {
     private String prevUndoText;
     private FmlCanvas canvas;
     private FmlController controller;
+    private ToggleActionManager toggleActionManager;
 
     public FmlContext(Project project, VirtualFile file, FmlFileEditor fileEditor) {
         this.project = project;
@@ -71,5 +73,13 @@ public class FmlContext {
 
     public void setController(FmlController controller) {
         this.controller = controller;
+    }
+
+    public ToggleActionManager getToggleActionManager() {
+        return toggleActionManager;
+    }
+
+    public void setToggleActionManager(ToggleActionManager toggleActionManager) {
+        this.toggleActionManager = toggleActionManager;
     }
 }

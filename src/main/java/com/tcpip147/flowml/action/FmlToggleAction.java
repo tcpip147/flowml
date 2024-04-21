@@ -8,10 +8,10 @@ import javax.swing.*;
 
 public class FmlToggleAction extends ToggleAction {
 
-    private ToggleObserver observer;
+    private ToggleActionManager observer;
     protected boolean selected;
 
-    public FmlToggleAction(String text, String description, Icon icon, ToggleObserver observer) {
+    public FmlToggleAction(String text, String description, Icon icon, ToggleActionManager observer) {
         super(text, description, icon);
         this.observer = observer;
         observer.addAction(this);

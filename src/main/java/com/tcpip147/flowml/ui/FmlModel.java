@@ -4,14 +4,10 @@ import com.tcpip147.flowml.ui.component.Activity;
 import com.tcpip147.flowml.ui.component.RangeSelection;
 import com.tcpip147.flowml.ui.component.Shape;
 import com.tcpip147.flowml.ui.component.Wire;
-import com.tcpip147.flowml.ui.context.MouseContext;
-import com.tcpip147.flowml.util.FmlUtils;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
 
 public class FmlModel {
@@ -27,6 +23,10 @@ public class FmlModel {
 
     public List<Shape> getShapeList() {
         return shapeList;
+    }
+
+    public void setShapeList(List<Shape> shapeList) {
+        this.shapeList = shapeList;
     }
 
     public void add(Shape shape) {
@@ -151,5 +151,18 @@ public class FmlModel {
             }
         }
         return null;
+    }
+
+    public Set<Wire> getConnectedWireList(Activity activity) {
+        Set<Wire> wireList = new HashSet<>();
+        for (Shape shape : shapeList) {
+            if (shape instanceof Wire) {
+                Wire wire = (Wire) shape;
+                if (wire.source == activity || wire.target == activity) {
+                    wireList.add(wire);
+                }
+            }
+        }
+        return wireList;
     }
 }

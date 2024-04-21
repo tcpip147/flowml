@@ -6,8 +6,7 @@ import com.tcpip147.flowml.ui.context.MouseContext;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
 
 public class FmlController {
@@ -353,6 +352,30 @@ public class FmlController {
                 Wire wire = new Wire(activity, direction, offsetX, null, null, 0);
                 model.add(wire);
                 model.addGhost(wire.createGhost());
+            }
+        }
+    }
+
+    public void removeSelectedShape() {
+        Iterator<Shape> iterator = model.getShapeList().iterator();
+        Set<Shape> wireToRemove = new HashSet<>();
+        while (iterator.hasNext()) {
+            Shape shape = iterator.next();
+            if (shape.selected) {
+                if (shape instanceof Activity) {
+                    Set<Wire> wireSet = model.getConnectedWireList((Activity) shape);
+                    wireToRemove.addAll(wireSet);
+                }
+                iterator.remove();
+            }
+        }
+
+        iterator = model.getShapeList().iterator();
+        while (iterator.hasNext()) {
+            Shape next = iterator.next();
+            if (wireToRemove.contains(next)) {
+                wireToRemove.remove(next);
+                iterator.remove();
             }
         }
     }

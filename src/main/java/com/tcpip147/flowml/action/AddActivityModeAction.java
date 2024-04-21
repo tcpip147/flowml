@@ -8,7 +8,7 @@ public class AddActivityModeAction extends FmlToggleAction {
 
     private FmlContext ctx;
 
-    public AddActivityModeAction(FmlContext ctx, ToggleObserver observer) {
+    public AddActivityModeAction(FmlContext ctx, ToggleActionManager observer) {
         super("Add Activity", "Add Activity", AllIcons.General.Add, observer);
         this.ctx = ctx;
     }

@@ -10,7 +10,7 @@ import com.intellij.util.ui.JBUI;
 import com.tcpip147.flowml.action.AddActivityModeAction;
 import com.tcpip147.flowml.action.AddWireModeAction;
 import com.tcpip147.flowml.action.SelectionModeAction;
-import com.tcpip147.flowml.action.ToggleObserver;
+import com.tcpip147.flowml.action.ToggleActionManager;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -36,11 +36,12 @@ public class FmlChartEditor extends JPanel {
         ActionManager actionManager = ActionManager.getInstance();
 
         DefaultActionGroup group1 = new DefaultActionGroup();
-        ToggleObserver observer = new ToggleObserver();
-        SelectionModeAction selectionModeAction = new SelectionModeAction(ctx, observer);
+        ToggleActionManager toggleActionManager = new ToggleActionManager();
+        ctx.setToggleActionManager(toggleActionManager);
+        SelectionModeAction selectionModeAction = new SelectionModeAction(ctx, toggleActionManager);
         group1.add(selectionModeAction);
-        group1.add(new AddActivityModeAction(ctx, observer));
-        group1.add(new AddWireModeAction(ctx, observer));
+        group1.add(new AddActivityModeAction(ctx, toggleActionManager));
+        group1.add(new AddWireModeAction(ctx, toggleActionManager));
         selectionModeAction.setSelected(true);
 
         ActionToolbar toolbar1 = actionManager.createActionToolbar("FlowMLToolbarGroup1", group1, true);
