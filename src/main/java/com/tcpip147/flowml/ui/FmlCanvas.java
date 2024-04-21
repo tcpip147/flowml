@@ -67,8 +67,9 @@ public class FmlCanvas extends JPanel {
                         }
                     } else if (state == SelectionState.ADD_WIRE_READY) {
                         controller.createGhostWire(e);
-                        repaint();
+                        mouseContext.wireMovePosition = -1;
                         state = SelectionState.ADD_WIRE_TARGET_READY;
+                        repaint();
                     }
                 } else if (SwingUtilities.isRightMouseButton(e)) {
                     state = SelectionState.SELECT_READY;
@@ -149,12 +150,19 @@ public class FmlCanvas extends JPanel {
                         mouseContext.reset();
                     } else if (state == SelectionState.ADD_ACTIVITY_READY) {
                         controller.adjustGhostShapeList();
-                        controller.createGhostActivity(e.getX(), e.getY());
                         repaint();
+                        state = SelectionState.SELECT_READY;
+                        ctx.getToggleActionManager().clickAction("Selection");
+                        mouseContext.reset();
                     } else if (state == SelectionState.ADD_WIRE_TARGET_READY) {
-                        controller.adjustGhostShapeList();
+                        boolean success = controller.adjustGhostShapeList();
                         repaint();
-                        state = SelectionState.ADD_WIRE_READY;
+                        if (success) {
+                            state = SelectionState.SELECT_READY;
+                            ctx.getToggleActionManager().clickAction("Selection");
+                        } else {
+                            state = SelectionState.ADD_WIRE_READY;
+                        }
                         mouseContext.reset();
                     }
                 }

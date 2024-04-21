@@ -133,11 +133,19 @@ public class FmlController {
                 GhostWire ghostWire = (GhostWire) shape;
                 Wire wire = ghostWire.wire;
                 wire.setVisible(false);
-                Activity anchor = c.wireMovePosition == 0 ? wire.target : wire.source;
                 Activity activity = model.getActivityMarkedWire(e);
+                Activity anchor;
                 if (activity != null) {
+                    anchor = c.wireMovePosition == 0 ? ghostWire.target : ghostWire.source;
                     if (activity != anchor) {
                         activity.setShowWireMark(true);
+                    }
+                } else {
+                    anchor = null;
+                    if (c.wireMovePosition == 0) {
+                        ghostWire.source = null;
+                    } else {
+                        ghostWire.target = null;
                     }
                 }
 
@@ -249,7 +257,7 @@ public class FmlController {
         c.prevY = e.getY();
     }
 
-    public void adjustGhostShapeList() {
+    public boolean adjustGhostShapeList() {
         if (model.getGhostShapeList() != null) {
             for (Shape shape : model.getGhostShapeList()) {
                 if (shape instanceof GhostActivity) {
@@ -259,26 +267,33 @@ public class FmlController {
                     ghostActivity.activity.setWidth(ghostActivity.width);
                     ghostActivity.activity.setHeight(ghostActivity.height);
                     refreshDependentWires(ghostActivity.activity);
+                    model.setGhostShapeList(null);
+                    return true;
                 } else if (shape instanceof GhostWire) {
                     GhostWire ghostWire = (GhostWire) shape;
-                    ghostWire.wire.setSource(ghostWire.source);
-                    ghostWire.wire.setSourceOut(ghostWire.sourceOut);
-                    ghostWire.wire.setSourceX(ghostWire.sourceX);
-                    ghostWire.wire.setTarget(ghostWire.target);
-                    ghostWire.wire.setTargetIn(ghostWire.targetIn);
-                    ghostWire.wire.setTargetX(ghostWire.targetX);
-                    ghostWire.wire.setVisible(true);
-                    if (ghostWire.wire.source.showWireMark) {
-                        ghostWire.wire.source.setShowWireMark(false);
+                    if (ghostWire.source != null && ghostWire.target != null) {
+                        ghostWire.wire.setSource(ghostWire.source);
+                        ghostWire.wire.setSourceOut(ghostWire.sourceOut);
+                        ghostWire.wire.setSourceX(ghostWire.sourceX);
+                        ghostWire.wire.setTarget(ghostWire.target);
+                        ghostWire.wire.setTargetIn(ghostWire.targetIn);
+                        ghostWire.wire.setTargetX(ghostWire.targetX);
+                        ghostWire.wire.setVisible(true);
+                        if (ghostWire.wire.source.showWireMark) {
+                            ghostWire.wire.source.setShowWireMark(false);
+                        }
+                        if (ghostWire.wire.target.showWireMark) {
+                            ghostWire.wire.target.setShowWireMark(false);
+                        }
+                        ghostWire.wire.refresh();
+                        model.setGhostShapeList(null);
+                        return true;
                     }
-                    if (ghostWire.wire.target.showWireMark) {
-                        ghostWire.wire.target.setShowWireMark(false);
-                    }
-                    ghostWire.wire.refresh();
                 }
             }
             model.setGhostShapeList(null);
         }
+        return false;
     }
 
     public void resizeGhostShape(MouseContext c, MouseEvent e) {
